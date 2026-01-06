@@ -1,0 +1,17 @@
+# VM-created directories (not in repo)
+sites-enabled/
+caddy-data/
+caddy-config/
+
+# Environment files (secrets)
+.env
+*.env
+!.env.example
+
+# OS files
+.DS_Store
+*.Zone.Identifier
+
+# Backup files
+*.bak
+*~

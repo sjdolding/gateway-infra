@@ -1,0 +1,48 @@
+# Gateway Stack — Caddy reverse proxy
+#
+# Purpose:
+#   Shared reverse proxy that owns ports 80/443 and routes traffic to project containers.
+#
+# Network:
+#   - gateway_net: shared network for Gateway <-> project communication
+#
+# Volumes:
+#   - caddy-data: persistent certificate storage
+#   - caddy-config: persistent Caddy configuration
+#
+# Usage:
+#   docker compose up -d
+
+services:
+  caddy:
+    image: caddy:2
+    container_name: gateway-caddy
+    restart: unless-stopped
+    
+    ports:
+      - "80:80"
+      - "443:443"
+    
+    volumes:
+      # Caddyfile and sites-enabled
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./sites-enabled:/etc/caddy/sites-enabled:ro
+      
+      # Persistent storage for certs and config
+      - ./caddy-data:/data
+      - ./caddy-config:/config
+    
+    networks:
+      - gateway_net
+    
+    # Health check to ensure Caddy is responding
+    healthcheck:
+      test: ["CMD", "caddy", "validate", "--config", "/etc/caddy/Caddyfile"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  gateway_net:
+    external: true

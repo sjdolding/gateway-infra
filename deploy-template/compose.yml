@@ -1,0 +1,93 @@
+# Project Deploy Template
+#
+# Purpose:
+#   Reference example showing the structure of a project's deploy/ folder.
+#   Copy this template to your app repo under deploy/
+#
+# API + DB stack (no Gateway here)
+# Gateway routing is defined separately in caddy-sites/
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: myapp-db
+    restart: unless-stopped
+    
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    
+    volumes:
+      # Persistent database storage
+      - db-data:/var/lib/postgresql/data
+      
+      # Optional: init scripts (run only on empty volume)
+      # - ./init-db:/docker-entrypoint-initdb.d:ro
+    
+    networks:
+      - default
+      - gateway_net
+    
+    # Keep DB private (no host port binding by default)
+    # If you need to inspect DB from laptop, use SSH tunnel:
+    #   ssh -L 5432:localhost:5433 user@vm
+    # Then uncomment and adjust the unique port:
+    # ports:
+    #   - "127.0.0.1:5433:5432"
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    image: ghcr.io/yourorg/myapp:${APP_VERSION:-latest}
+    container_name: myapp-api
+    restart: unless-stopped
+    
+    environment:
+      # App configuration
+      NODE_ENV: production
+      PORT: 8000
+      
+      # Database connection (internal network)
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      
+      # API secrets
+      JWT_SECRET: ${JWT_SECRET}
+      API_KEY: ${API_KEY}
+    
+    depends_on:
+      db:
+        condition: service_healthy
+    
+    networks:
+      - default
+      - gateway_net
+    
+    # NO host port binding - Gateway routes to this via gateway_net
+    # expose:
+    #   - "8000"
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  db-data:
+    driver: local
+
+networks:
+  default:
+    name: myapp-internal
+  gateway_net:
+    external: true

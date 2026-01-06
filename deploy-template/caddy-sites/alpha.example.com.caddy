@@ -1,0 +1,45 @@
+# Caddy routing snippet for alpha.example.com
+#
+# Purpose:
+#   Route requests to this hostname to the project's API container.
+#
+# How it works:
+#   - Caddy listens on 80/443 (public)
+#   - Routes alpha.example.com to api:8000 on gateway_net
+#   - Automatic HTTPS with Let's Encrypt
+#
+# This file should be symlinked to /srv/gateway/sites-enabled/ via:
+#   /srv/gateway/scripts/enable-site.sh /srv/projects/myapp/deploy/caddy-sites/alpha.example.com.caddy
+
+alpha.example.com {
+	# Reverse proxy to API container
+	reverse_proxy api:8000 {
+		# Health check (optional)
+		health_uri /health
+		health_interval 30s
+		health_timeout 10s
+		
+		# Connection settings
+		lb_try_duration 5s
+	}
+	
+	# Optional: add custom headers
+	header {
+		# Security headers
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		
+		# Remove server header
+		-Server
+	}
+	
+	# Optional: logging
+	log {
+		output file /var/log/caddy/alpha.example.com.log {
+			roll_size 100mb
+			roll_keep 5
+		}
+	}
+}

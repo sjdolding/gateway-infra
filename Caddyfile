@@ -1,0 +1,21 @@
+# Base Caddyfile for Gateway
+#
+# Purpose:
+#   Import all site configuration snippets from sites-enabled/
+#
+# Site-specific routing is defined in project Caddy snippets:
+#   /srv/projects/<project>/deploy/caddy-sites/<hostname>.caddy
+#
+# Those snippets are symlinked to sites-enabled/ by enable-site.sh
+
+# Global options (optional)
+{
+	# Uncomment to enable admin API on localhost only
+	# admin localhost:2019
+	
+	# Automatic HTTPS by default
+	auto_https on
+}
+
+# Import all enabled sites
+import /etc/caddy/sites-enabled/*
