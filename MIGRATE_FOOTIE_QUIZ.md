@@ -286,6 +286,11 @@ GIT_SSH_COMMAND="ssh -i ~/.ssh/footie-quiz-deploy -o StrictHostKeyChecking=accep
   git clone --filter=blob:none --sparse git@github.com:sjdolding/footie-quiz.git
 
 cd footie-quiz
+
+# Configure this repo to always use the deploy key
+git config core.sshCommand "ssh -i ~/.ssh/footie-quiz-deploy"
+
+# Set up sparse checkout
 git sparse-checkout set deploy
 git checkout main
 ```
@@ -393,10 +398,7 @@ docker compose up -d
 # On VM
 cd /srv/projects/footie-quiz
 
-# For private repos with deploy key:
-GIT_SSH_COMMAND="ssh -i ~/.ssh/footie-quiz-deploy" git pull
-
-# For public repos:
+# Pull latest (deploy key config is already set if you configured it in 3.3)
 git pull
 
 cd deploy
