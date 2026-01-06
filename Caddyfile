@@ -13,8 +13,7 @@
 	# Uncomment to enable admin API on localhost only
 	# admin localhost:2019
 	
-	# Automatic HTTPS by default
-	auto_https on
+	# Automatic HTTPS is enabled by default (no need to specify)
 }
 
 # Import all enabled sites
