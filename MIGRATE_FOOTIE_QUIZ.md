@@ -253,7 +253,44 @@ docker push ghcr.io/sjdolding/footie-quiz:v1.0.0
 ssh ubuntu@your-vm-ip
 ```
 
-### 3.2 Sparse clone footie-quiz (deploy/ only)
+### 3.2 Setup Deploy Key (for private repos)
+
+**Note:** If your repository is public, skip to step 3.3 and use HTTPS clone.
+
+Generate an SSH deploy key on the VM:
+
+```bash
+# Generate deploy key (no passphrase for unattended access)
+ssh-keygen -t ed25519 -C "footie-quiz-vm-deploy" -f ~/.ssh/footie-quiz-deploy
+
+# Display public key
+cat ~/.ssh/footie-quiz-deploy.pub
+```
+
+Add the public key to GitHub:
+1. Go to: `https://github.com/sjdolding/footie-quiz/settings/keys`
+2. Click "Add deploy key"
+3. Paste the public key
+4. Title: "VM Alpha Deploy"
+5. **Leave "Allow write access" unchecked** (read-only is sufficient)
+
+### 3.3 Sparse clone footie-quiz (deploy/ only)
+
+**For private repos (with deploy key):**
+
+```bash
+cd /srv/projects
+
+# Clone using deploy key
+GIT_SSH_COMMAND="ssh -i ~/.ssh/footie-quiz-deploy -o StrictHostKeyChecking=accept-new" \
+  git clone --filter=blob:none --sparse git@github.com:sjdolding/footie-quiz.git
+
+cd footie-quiz
+git sparse-checkout set deploy
+git checkout main
+```
+
+**For public repos:**
 
 ```bash
 cd /srv/projects
@@ -263,7 +300,7 @@ git sparse-checkout set deploy
 git checkout main
 ```
 
-### 3.3 Configure environment
+### 3.4 Configure environment
 
 ```bash
 cd /srv/projects/footie-quiz/deploy
@@ -278,7 +315,7 @@ Set real values:
 - `SESSION_SECRET=<generate-with-openssl>`
 - `FRONTEND_URL=https://alpha.footie-quiz.sjdolding.com`
 
-### 3.4 Start the stack
+### 3.5 Start the stack
 
 ```bash
 cd /srv/projects/footie-quiz/deploy
@@ -286,7 +323,7 @@ docker compose pull
 docker compose up -d
 ```
 
-### 3.5 Enable Gateway routing
+### 3.6 Enable Gateway routing
 
 ```bash
 /srv/gateway/scripts/enable-site.sh \
@@ -295,7 +332,7 @@ docker compose up -d
 /srv/gateway/scripts/reload-gateway.sh
 ```
 
-### 3.6 Verify deployment
+### 3.7 Verify deployment
 
 ```bash
 # Check status
@@ -355,6 +392,11 @@ docker compose up -d
 ```bash
 # On VM
 cd /srv/projects/footie-quiz
+
+# For private repos with deploy key:
+GIT_SSH_COMMAND="ssh -i ~/.ssh/footie-quiz-deploy" git pull
+
+# For public repos:
 git pull
 
 cd deploy
