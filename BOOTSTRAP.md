@@ -5,7 +5,7 @@
 To deploy the Gateway infrastructure on a fresh Ubuntu VM, run this single command:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOURORG/gateway-infra/main/stage0.sh \
+curl -fsSL https://raw.githubusercontent.com/sjdolding/gateway-infra/main/stage0.sh \
   | sudo bash -s -- https://github.com/YOURORG/gateway-infra.git main
 ```
 
