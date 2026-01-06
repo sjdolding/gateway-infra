@@ -76,6 +76,11 @@ GIT_SSH_COMMAND="ssh -i $KEY_PATH -o StrictHostKeyChecking=accept-new" \
     git clone --filter=blob:none --sparse "git@github.com:${GITHUB_REPO}.git" "$PROJECT_NAME"
 
 cd "$PROJECT_NAME"
+
+# Configure repo to always use the deploy key
+git config core.sshCommand "ssh -i $KEY_PATH -o StrictHostKeyChecking=accept-new"
+
+# Now set sparse checkout and checkout main
 git sparse-checkout set deploy
 git checkout main
 
